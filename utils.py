@@ -11,12 +11,24 @@ def pad_sents(sents, pad_token):
     """ Pad list of sentences according to the longest sentence in the batch.
     @param sents (list[list[int]]): list of sentences, where each sentence
                                     is represented as a list of words
-    @param pad_token (int): padding token
-    @returns sents_padded (list[list[str]]): list of sentences where sentences shorter
+    @param pad_token (str): padding token
+    @returns sents_padded (list[list[int]]): list of sentences where sentences shorter
         than the max length sentence are padded out with the pad_token, such that
         each sentences in the batch now has equal length.
     """
     sents_padded = []
+    max_sentence_length= 0
+    for sentence in sents:
+        sentence_length = len(sentence)
+        if sentence_length > max_sentence_length:
+            max_sentence_length = sentence_length
+    
+    for sentence in sents:
+        sentence_length = len(sentence)
+        sentence_padded = sentence
+        for i in range(max_sentence_length - sentence_length):
+            sentence_padded.append(pad_token)
+        sents_padded.append(sentence_padded)
 
     ### YOUR CODE HERE (~6 Lines)
 
