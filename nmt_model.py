@@ -218,7 +218,7 @@ class NMT(nn.Module):
         ###     2. Construct tensor `Y` of target sentences with shape (tgt_len, b, e) using the target model embeddings.
         ###         where tgt_len = maximum target sentence length, b = batch size, e = embedding size.
 
-        Y = self.model_embeddings.source(target_padded)
+        Y = self.model_embeddings.target(target_padded)
 
         ###     3. Use the torch.split function to iterate over the time dimension of Y.
         ###         Within the loop, this will give you Y_t of shape (1, b, e) where b = batch size, e = embedding size.
@@ -229,9 +229,8 @@ class NMT(nn.Module):
         ###             - Append o_t to combined_outputs
         ###             - Update o_prev to the new o_t.
 
-        Y_splited = torch.split(Y, 1, dim =0)
-        for time_step in range(len(Y_splited)):
-            Y_t = torch.squeeze(Y_splited[time_step]) 
+        for Y_t in torch.split(Y, 1, dim =0):
+            Y_t = torch.squeeze(Y_t) 
             Ybar_t  = torch.cat((Y_t,o_prev),1)
             dec_state, o_t, e_t = self.step(Ybar_t,dec_state,enc_hiddens,enc_hiddens_proj,enc_masks)
             combined_outputs.append(o_t)
@@ -241,7 +240,7 @@ class NMT(nn.Module):
         ###         tensors shape (b, h), to a single tensor shape (tgt_len, b, h)
         ###         where tgt_len = maximum target sentence length, b = batch size, h = hidden size.
         ###
-        combined_outputs = torch.stack(combined_outputs)
+        combined_outputs = torch.stack(combined_outputs, dim=0)
 
         ### Note:
         ###    - When using the squeeze() function make sure to specify the dimension you want to squeeze
@@ -300,7 +299,7 @@ class NMT(nn.Module):
         
         ###     2. Split dec_state into its two parts (dec_hidden, dec_cell)
 
-        dec_hidden, dec_cell = dec_state
+        (dec_hidden, dec_cell) = dec_state
 
         ###     3. Compute the attention scores e_t, a Tensor shape (b, src_len). 
         ###        Note: b = batch_size, src_len = maximum source length, h = hidden size.
@@ -333,8 +332,7 @@ class NMT(nn.Module):
         ### YOUR CODE HERE (~6 Lines)
         ### TODO:
         ###     1. Apply softmax to e_t to yield alpha_t
-        softmax= nn.Softmax(dim=1)
-        alpha_t = softmax(e_t)
+        alpha_t = F.softmax(e_t, dim=1) 
         ###     2. Use batched matrix multiplication between alpha_t and enc_hiddens to obtain the
         ###         attention output vector, a_t.
         # $$     Hints:
@@ -346,7 +344,7 @@ class NMT(nn.Module):
         ###
         a_t = torch.squeeze(torch.bmm(enc_hiddens.permute(0, 2, 1), torch.unsqueeze(alpha_t, 2)), 2)
         ###     3. Concatenate dec_hidden with a_t to compute tensor U_t
-        U_t  = torch.cat((a_t, dec_hidden),1)
+        U_t  = torch.cat((a_t, dec_hidden),dim=1)
         ###     4. Apply the combined output projection layer to U_t to compute tensor V_t
         V_t = self.combined_output_projection(U_t)
         ###     5. Compute tensor O_t by first applying the Tanh function and then the dropout layer.
