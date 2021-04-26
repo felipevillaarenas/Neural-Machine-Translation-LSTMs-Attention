@@ -1,4 +1,4 @@
-# Neural Machine Translation (NMT) system with LSTMs+Attention
+# Neural Machine Translation (NMT) System based on LSTMs+Attention
 Note: Heavily inspired by the https://github.com/pcyin/pytorch_nmt repository
 
 Create virtual environment
