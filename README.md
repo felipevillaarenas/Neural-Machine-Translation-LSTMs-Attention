@@ -1,5 +1,6 @@
 # Neural Machine Translation (NMT) System based on LSTMs+Attention
->Stanford Certification
+
+>**Stanford Certification**
 Note: Heavily inspired by the https://github.com/pcyin/pytorch_nmt repository
 
 Create virtual environment
